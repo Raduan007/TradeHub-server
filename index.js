@@ -58,11 +58,29 @@ function getProductFilter(id) {
 }
 
 async function getProducts(req, res) {
-  const limit = Math.min(Number(req.query.limit) || 8, 24);
+  const limit = Math.min(Number(req.query.limit) || 8, 100);
+  const filter = {};
+
+  if (req.query.sellerId) {
+    filter.sellerId = req.query.sellerId;
+  }
+
+  if (req.query.search?.trim()) {
+    const term = req.query.search.trim();
+    filter.$or = [
+      { name: { $regex: term, $options: "i" } },
+      { category: { $regex: term, $options: "i" } },
+      { brand: { $regex: term, $options: "i" } },
+    ];
+  }
 
   try {
     await connectToMongoDB();
-    const products = await productsCollection.find({}).limit(limit).toArray();
+    const products = await productsCollection
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .toArray();
 
     res.send(products);
   } catch (error) {
