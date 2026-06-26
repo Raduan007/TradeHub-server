@@ -17,8 +17,18 @@ const uri =
   "mongodb+srv://tradehub:LOVf2oiHqOZcaj8L@cluster0.vuybam0.mongodb.net/?appName=Cluster0";
 const dbName = process.env.DB_NAME || "tradehubdb";
 const productsCollectionName = process.env.PRODUCTS_COLLECTION || "courses";
+const frontendUrl = process.env.FRONTEND_URL;
 
-app.use(cors());
+if (!frontendUrl) {
+  console.warn("FRONTEND_URL is not set in .env — CORS may block browser requests.");
+}
+
+app.use(
+  cors({
+    origin: frontendUrl,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const client = new MongoClient(uri, {
