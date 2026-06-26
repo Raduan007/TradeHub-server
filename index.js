@@ -3,6 +3,10 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 
+const dns = require("node:dns").promises;
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 dotenv.config();
 
 const app = express();
