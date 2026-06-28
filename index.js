@@ -17,15 +17,18 @@ const uri =
   "mongodb+srv://tradehub:LOVf2oiHqOZcaj8L@cluster0.vuybam0.mongodb.net/?appName=Cluster0";
 const dbName = process.env.DB_NAME || "tradehubdb";
 const productsCollectionName = process.env.PRODUCTS_COLLECTION || "courses";
-const frontendUrl = process.env.FRONTEND_URL;
+const corsOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((url) => url.trim())
+  .filter(Boolean);
 
-if (!frontendUrl) {
+if (corsOrigins.length === 0) {
   console.warn("FRONTEND_URL is not set in .env — CORS may block browser requests.");
 }
 
 app.use(
   cors({
-    origin: frontendUrl,
+    origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
     credentials: true,
   })
 );
