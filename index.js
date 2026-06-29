@@ -25,7 +25,9 @@ const corsOrigins = (process.env.FRONTEND_URL || "")
   .map((url) => url.trim())
   .filter(Boolean);
 
-if (corsOrigins.length === 0) {
+  
+
+  if (corsOrigins.length === 0) {
   console.warn("FRONTEND_URL is not set in .env — CORS may block browser requests.");
 }
 
@@ -35,8 +37,10 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+ app.use(express.json());
+  
 
+ 
 const client = new MongoClient(uri, {
   serverSelectionTimeoutMS: 5000,
   serverApi: {
