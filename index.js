@@ -41,14 +41,6 @@ app.use(
   
 
  
-const client = new MongoClient(uri, {
-  serverSelectionTimeoutMS: 5000,
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
 
 let mongoConnectionPromise = null;
 
@@ -200,7 +192,15 @@ async function healthCheck(req, res) {
       collections: collections.map((collection) => collection.name),
     });
   } catch (error) {
-    
+    res.status(500).send({
+      server: "ok",
+      mongodb: "error",
+      database: dbName,
+      productsCollection: productsCollectionName,
+      message: error.message,
+    });
+  }
+}
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -210,15 +210,7 @@ app.get("/health", healthCheck);
 app.get("/products", getProducts);
 app.get("/api/products", getProducts);
 app.get("/products/:id", getProduct);
-app.get("/api/products/:id", getProduct);
-app.post("/products", createProduct);
-app.post("/api/products", createProduct);
-app.put("/products/:id", updateProduct);
-app.put("/api/products/:id", updateProduct);
-app.patch("/products/:id", updateProduct);
-app.patch("/api/products/:id", updateProduct);
-app.delete("/products/:id", deleteProduct);
-app.delete("/api/products/:id", deleteProduct);
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
