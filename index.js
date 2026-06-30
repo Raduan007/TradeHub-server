@@ -200,15 +200,7 @@ async function healthCheck(req, res) {
       collections: collections.map((collection) => collection.name),
     });
   } catch (error) {
-    res.status(500).send({
-      server: "ok",
-      mongodb: "error",
-      database: dbName,
-      productsCollection: productsCollectionName,
-      message: error.message,
-    });
-  }
-}
+    
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
