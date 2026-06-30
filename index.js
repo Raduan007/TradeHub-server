@@ -39,7 +39,6 @@ app.use(
 );
  app.use(express.json());
   
-
  
 
 let mongoConnectionPromise = null;
@@ -118,22 +117,6 @@ async function getProduct(req, res) {
   }
 }
 
-async function createProduct(req, res) {
-  try {
-    await connectToMongoDB();
-    const product = {
-      ...req.body,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const result = await productsCollection.insertOne(product);
-
-    res.status(201).send({ ...product, _id: result.insertedId });
-  } catch (error) {
-    console.error("Failed to create product:", error.message);
-    res.status(500).send({ message: error.message || "Failed to create product" });
-  }
-}
 
 async function updateProduct(req, res) {
   try {
@@ -210,7 +193,15 @@ app.get("/health", healthCheck);
 app.get("/products", getProducts);
 app.get("/api/products", getProducts);
 app.get("/products/:id", getProduct);
-
+app.get("/api/products/:id", getProduct);
+app.post("/products", createProduct);
+app.post("/api/products", createProduct);
+app.put("/products/:id", updateProduct);
+app.put("/api/products/:id", updateProduct);
+app.patch("/products/:id", updateProduct);
+app.patch("/api/products/:id", updateProduct);
+app.delete("/products/:id", deleteProduct);
+app.delete("/api/products/:id", deleteProduct);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
