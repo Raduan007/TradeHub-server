@@ -8,38 +8,27 @@ const dns = require("node:dns").promises;
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 dotenv.config();
+
 const app = express();
 const port = process.env.PORT || 8080;
- 
-
-
-
 
 const uri =
   process.env.MONGODB_URI ||
   "mongodb+srv://tradehub:LOVf2oiHqOZcaj8L@cluster0.vuybam0.mongodb.net/?appName=Cluster0";
 const dbName = process.env.DB_NAME || "tradehubdb";
 const productsCollectionName = process.env.PRODUCTS_COLLECTION || "courses";
-const corsOrigins = (process.env.FRONTEND_URL || "")
-  .split(",")
-  .map((url) => url.trim())
-  .filter(Boolean);
 
-  
+app.use(cors());
+app.use(express.json());
 
-  if (corsOrigins.length === 0) {
-  console.warn("FRONTEND_URL is not set in .env — CORS may block browser requests.");
-}
-
-app.use(
-  cors({
-    origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
-    credentials: true,
-  })
-);
- app.use(express.json());
-  
- 
+const client = new MongoClient(uri, {
+  serverSelectionTimeoutMS: 5000,
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
 
 let mongoConnectionPromise = null;
 
@@ -69,33 +58,14 @@ function getProductFilter(id) {
 }
 
 async function getProducts(req, res) {
-  const limit = Math.min(Number(req.query.limit) || 8, 100);
-  const filter = {};
-
-  if (req.query.sellerId) {
-    filter.sellerId = req.query.sellerId;
-  }
-
-  if (req.query.search?.trim()) {
-    const term = req.query.search.trim();
-    filter.$or = [
-      { name: { $regex: term, $options: "i" } },
-      { category: { $regex: term, $options: "i" } },
-      { brand: { $regex: term, $options: "i" } },
-    ];
-  }
+  const limit = Math.min(Number(req.query.limit) || 8, 24);
 
   try {
     await connectToMongoDB();
-    const products = await productsCollection
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray();
+    const products = await productsCollection.find({}).limit(limit).toArray();
 
-    res.send(products);
-  } catch (error) {
-    console.error("Failed to fetch products:", error.message);
+      .toArray();
+ailed to fetch products:", error.message);
     res.status(500).send({ message: error.message || "Failed to fetch products" });
   }
 }
@@ -117,6 +87,22 @@ async function getProduct(req, res) {
   }
 }
 
+async function createProduct(req, res) {
+  try {
+    await connectToMongoDB();
+    const product = {
+      ...req.body,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const result = await productsCollection.insertOne(product);
+
+    res.status(201).send({ ...product, _id: result.insertedId });
+  } catch (error) {
+    console.error("Failed to create product:", error.message);
+    res.status(500).send({ message: error.message || "Failed to create product" });
+  }
+}
 
 async function updateProduct(req, res) {
   try {
